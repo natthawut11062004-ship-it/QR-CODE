@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>ราชากะเพรา | ระบบสั่งอาหารร้านอาหารออนไลน์</title>
+    <!-- FontAwesome Library for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-style/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css?v=48">
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- Header Section -->
+        <header>
+            <div class="logo-container" style="display: flex; align-items: center; gap: 16px;">
+                <a href="#" class="logo" id="logoLink">
+                    <i class="fa-solid fa-fire" onclick="event.stopPropagation(); event.preventDefault(); triggerAdminAuth();" title="จัดการร้าน (สำหรับผู้ดูแล)" style="cursor: pointer;"></i>
+                    <span>ราชากะเพรา</span>
+                </a>
+                <div class="header-table-badge" id="headerTableBadge" style="display: none;">
+                    <i class="fa-solid fa-chair"></i>
+                    <span id="headerTableBadgeText">โต๊ะ 1</span>
+                </div>
+                <button id="tabAdmin" style="display: none;"></button>
+                <button id="tabCustomer" style="display: none;"></button>
+            </div>
+            
+            <!-- Mid Search Panel (Customer view only, hidden dynamically if in admin) -->
+            <div class="search-bar" id="searchBarWrapper" style="margin-left: auto;">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="ค้นหาเมนูอาหารแสนอร่อย...">
+            </div>
+            
+            <!-- Navbar Action Controls -->
+            <div class="nav-actions">
+                <!-- Order History Button -->
+                <button class="btn btn-secondary cart-btn" id="historyToggleBtn" onclick="openOrderHistoryModal()" title="ประวัติการสั่งซื้อ">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
+                
+                <!-- Cart Button -->
+                <button class="btn btn-secondary cart-btn" id="cartToggleBtn" onclick="toggleCartDrawer(true)">
+                    <i class="fa-solid fa-basket-shopping"></i>
+                    <span class="badge" id="cartCountBadge">0</span>
+                </button>
+
+                <!-- Exit Admin Button (Admin view only) -->
+                <button class="btn-exit-admin" id="btnExitAdmin" onclick="switchView('customer')" title="กลับไปหน้าสั่งอาหาร" style="display: none;">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- CUSTOMER VIEW SECTION -->
+        <main class="view-section active" id="customerView">
+            
+            <!-- Hero Promotion Banner -->
+            <div class="hero-banner">
+                <div class="hero-content">
+                    <h1>ราชากะเพรา<br>รสชาติจัดจ้านถึงใจ</h1>
+                    <p>ยินดีต้อนรับสู่ร้านราชากะเพรา เลือกสรรเมนูกะเพราจานโปรด คัดสรรวัตถุดิบและปรุงสดใหม่จานต่อจาน สั่งง่าย สะดวก รวดเร็ว ผ่านระบบที่นี่</p>
+
+                </div>
+                <div class="hero-image">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYEjiGGhSSmADzC-gEkLe4a2awP7-9ROnjP9ev0a8mPCggDr84l6GrBStv&s=10?w=600&auto=format&fit=crop&q=80" alt="Raja Kra Pao Hero" onerror="this.src='https://placehold.co/600x400/101524/FFFFFF?text=Raja+Kra+Pao'">
+                </div>
+            </div>
+
+            <!-- Categories and Sorting Area -->
+            <div class="categories-container">
+                <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <h2>เมนูยอดนิยมของเรา</h2>
+                    <div id="menuTableSubtitle" style="display: none; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--primary); background: rgba(255, 94, 54, 0.08); padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(255, 94, 54, 0.25);">
+                        <i class="fa-solid fa-chair"></i>
+                        <span>สั่งอาหารสำหรับ: โต๊ะ <strong id="menuTableSubtitleNum" style="font-size: 14px;">1</strong></span>
+                    </div>
+                </div>
+                <div class="categories-list" id="categoryChipsContainer">
+                    <!-- Dynamic Category Chips loaded by JS -->
+                </div>
+            </div>
+
+            <!-- Customer Menu Grid -->
+            <div class="menu-grid" id="customerMenuGrid">
+                <!-- Cards render here via JS -->
+            </div>
+
+            <!-- Table Status Floating Bar -->
+            <div class="table-status-bar" id="tableStatusBar" style="display: none;" onclick="openOrderHistoryModal()">
+                <div class="bar-info">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span id="tableStatusBarText">โต๊ะที่ 1: มี 0 ออเดอร์กำลังจัดปรุง</span>
+                </div>
+                <button class="btn-bar-action">ดูสถานะอาหาร <i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+
+        </main>
+
+        <!-- ADMIN/DASHBOARD VIEW SECTION -->
+        <main class="view-section" id="adminView" style="padding: 0; max-width: 100%; width: 100%;">
+            <div class="admin-layout">
+                
+                <!-- Admin Sidebar -->
+                <aside class="admin-sidebar">
+                    
+                    
+                    <div class="sidebar-header">
+                        <i class="fa-solid fa-users-cog" style="color: var(--primary);"></i>
+                        <span>ระบบหลังบ้าน</span>
+                    </div>
+                    
+                    <nav class="sidebar-menu">
+                        <div class="menu-group">การดำเนินงาน</div>
+                        <button class="sidebar-item active" id="adminSidebarTabDashboard" onclick="switchAdminSubView('dashboard')">
+                            <i class="fa-solid fa-bell"></i>
+                            <span>คำสั่งซื้อลูกค้า</span>
+                        </button>
+                        
+                        <div class="menu-group">จัดการข้อมูลพื้นฐาน</div>
+                        <button class="sidebar-item" id="adminSidebarTabInventoryStock" onclick="switchAdminSubView('inventory-stock')">
+                            <i class="fa-solid fa-cubes"></i>
+                            <span>วัตถุดิบในสต็อก</span>
+                        </button>
+                        <button class="sidebar-item" id="adminSidebarTabMenuEditor" onclick="switchAdminSubView('menu-editor')">
+                            <i class="fa-solid fa-utensils"></i>
+                            <span>เมนูอาหาร</span>
+                        </button>
+                        <button class="sidebar-item" id="adminSidebarTabStaff" onclick="switchAdminSubView('staff')">
+                            <i class="fa-solid fa-users"></i>
+                            <span>ข้อมูลพนักงาน</span>
+                        </button>
+                        <button class="sidebar-item" id="adminSidebarTabToppings" onclick="switchAdminSubView('toppings')">
+                            <i class="fa-solid fa-gears"></i>
+                            <span>จัดการท็อปปิ้งอาหาร</span>
+                        </button>
+                        
+                        <div class="menu-group">บัญชี & คลังสินค้า</div>
+                        <button class="sidebar-item" id="adminSidebarTabStockIn" onclick="switchAdminSubView('stock-in')">
+                            <i class="fa-solid fa-dolly"></i>
+                            <span>ประวัติรับเข้าวัตถุดิบ</span>
+                        </button>
+                        <button class="sidebar-item" id="adminSidebarTabRequisitions" onclick="switchAdminSubView('requisitions')">
+                            <i class="fa-solid fa-receipt"></i>
+                            <span>ประวัติการเบิกจ่าย</span>
+                        </button>
+                        <button class="sidebar-item" id="adminSidebarTabExpenses" onclick="switchAdminSubView('expenses')">
+                            <i class="fa-solid fa-wallet"></i>
+                            <span>รายจ่ายของร้าน</span>
+                        </button>
+                        
+                        <div class="menu-group">รายงานสรุป</div>
+                        <button class="sidebar-item" id="adminSidebarTabSales" onclick="switchAdminSubView('sales')">
+                            <i class="fa-solid fa-chart-line"></i>
+                            <span>รายงานวิเคราะห์</span>
+                        </button>
+                    </nav>
+                </aside>
+                
+                <!-- Admin Main Content Area -->
+                <div class="admin-content-area">
+                    
+                    
+                    <div class="admin-grid-content">
+                        
+                        <!-- SUB-VIEW 1: Main Dashboard Manager -->
+                        <div id="adminDashboardSubView" style="display: flex; flex-direction: column; gap: 32px; width: 100%;">
+                    
+                    <!-- Top Row Analytics/Metrics -->
+                    <div class="admin-metrics">
+                        <div class="metric-card" style="cursor: pointer;" onclick="switchAdminSubView('sales')" title="คลิกเพื่อดูรายงานสรุปยอดขาย">
+                            <div class="metric-icon-box blue">
+                                <i class="fa-solid fa-baht-sign"></i>
+                            </div>
+                            <div class="metric-info">
+                                <span class="metric-subtitle"><i class="fa-regular fa-calendar-days"></i> ยอดขายวันนี้</span>
+                                <span class="metric-value"><span id="metricTotalSales">0</span> ฿</span>
+                                <span class="metric-desc" id="metricSalesBreakdown" style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">เงินสด: 0 ฿ | สแกน: 0 ฿</span>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <div class="metric-icon-box orange">
+                                <i class="fa-solid fa-fire"></i>
+                            </div>
+                            <div class="metric-info">
+                                <span class="metric-subtitle">ออเดอร์กำลังปรุง</span>
+                                <span class="metric-value" id="metricActiveOrders">0</span>
+                                <span class="metric-desc" style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">สถานะกำลังทำในครัว</span>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <div class="metric-icon-box green">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                            <div class="metric-info">
+                                <span class="metric-subtitle" id="metricCompletedSubtitle">เสิร์ฟสำเร็จวันนี้</span>
+                                <span class="metric-value" id="metricCompletedOrders">0</span>
+                                <span class="metric-desc" id="metricCompletedDesc" style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">รวมสะสมทุกวัน: 0 บิล</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Orders Section -->
+                    <div class="admin-section">
+                        <div class="admin-section-header" style="flex-direction: column; align-items: flex-start; gap: 12px; border-bottom: none; padding-bottom: 0;">
+                            <h3 class="admin-section-title"><i class="fa-regular fa-bell"></i> รายการสั่งอาหารของทางร้าน</h3>
+                            
+                            <!-- Tab Controls -->
+                            <div class="admin-tab-controls" style="display: flex; gap: 4px; width: 100%; border-bottom: 1px solid var(--border); padding-top: 4px;">
+                                <button class="admin-sub-tab active" id="btnTabActiveOrders" onclick="switchAdminOrdersTab('active')" style="background: transparent; border: none; color: var(--primary); font-weight: 700; padding: 10px 20px; cursor: pointer; transition: 0.2s;">
+                                    <i class="fa-solid fa-spinner fa-spin"></i> ออเดอร์กำลังดำเนินการ
+                                </button>
+                                <button class="admin-sub-tab" id="btnTabCompletedOrders" onclick="switchAdminOrdersTab('completed')" style="background: transparent; border: none; color: var(--text-muted); font-weight: 600; padding: 10px 20px; cursor: pointer; transition: 0.2s;">
+                                    <i class="fa-solid fa-check-double"></i> เช็คบิลเรียบร้อยแล้ว
+                                </button>
+                            </div>
+                            
+                            <!-- Date Filter for Completed Orders (Visible only in Completed tab) -->
+                            <div id="completedOrdersDateFilterWrapper" style="display: none; align-items: center; gap: 8px; margin-top: 10px; padding: 10px 0; border-bottom: 1px dashed var(--border); width: 100%; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 13px; color: var(--text-muted); font-weight: 600;"><i class="fa-regular fa-calendar"></i> แยกประวัติใบเสร็จรายวัน:</span>
+                                    <select id="completedOrdersDateFilter" onchange="filterCompletedOrdersByDate()" style="padding: 6px 12px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; outline: none; cursor: pointer;">
+                                        <option value="all">แสดงประวัติทุกวัน</option>
+                                        <!-- Populated dynamically -->
+                                    </select>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px; margin-left: 16px;">
+                                    <span style="font-size: 13px; color: var(--text-muted); font-weight: 600;"><i class="fa-solid fa-wallet"></i> ประเภทบิล:</span>
+                                    <div class="view-tabs" id="completedOrdersPaymentFilterWrapper">
+                                        <button class="view-tab active" id="paymentFilterAll" onclick="filterCompletedOrdersByPayment('all')">ทั้งหมด</button>
+                                        <button class="view-tab" id="paymentFilterCash" onclick="filterCompletedOrdersByPayment('cash')"><i class="fa-solid fa-money-bill-wave"></i> บิลเงินสด</button>
+                                        <button class="view-tab" id="paymentFilterScan" onclick="filterCompletedOrdersByPayment('scan')"><i class="fa-solid fa-qrcode"></i> บิลสแกน</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="order-table">
+                                <thead>
+                                    <tr>
+                                        <th>รหัสออเดอร์</th>
+                                        <th>วันที่</th>
+                                        <th>เวลาสั่งซื้อ</th>
+                                        <th>โต๊ะ</th>
+                                        <th>รายการอาหาร</th>
+                                        <th>ยอดรวม</th>
+                                        <th>ผู้รับออเดอร์</th>
+                                        <th>สถานะ</th>
+                                        <th>จัดการสถานะ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminOrderTableBody">
+                                    <!-- Loaded dynamically via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination Controls -->
+                        <div class="pagination-controls" id="adminOrdersPagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--border); flex-wrap: wrap; gap: 12px;">
+                            <span style="font-size: 13px; color: var(--text-muted);" id="paginationInfoText">กำลังแสดงออเดอร์ที่ 1-10 จาก 10 รายการ</span>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <button class="btn btn-secondary" id="btnPrevPage" onclick="changeAdminOrdersPage(-1)" style="padding: 6px 12px; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fa-solid fa-chevron-left"></i> ก่อนหน้า
+                                </button>
+                                <div id="pageNumbersContainer" style="display: flex; gap: 6px; align-items: center;"></div>
+                                <button class="btn btn-secondary" id="btnNextPage" onclick="changeAdminOrdersPage(1)" style="padding: 6px 12px; font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                                    ถัดไป <i class="fa-solid fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Table Status Management Section -->
+                    <div class="admin-section">
+                        <div class="admin-section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <h3 class="admin-section-title"><i class="fa-solid fa-chair"></i> แผนผังและจัดการสถานะโต๊ะอาหาร</h3>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button type="button" class="btn btn-secondary" onclick="resetAllTablesForNewBill()" style="padding: 8px 14px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; border-radius: var(--radius-sm);" title="รีเซ็ตสถานะทุกโต๊ะให้พร้อมเปิดบิลใหม่ทันที">
+                                    <i class="fa-solid fa-rotate"></i> เปิดรับบิลใหม่ทุกโต๊ะ
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="openTableQRModal()" style="padding: 8px 16px; font-size: 13px; font-weight: 600; background: rgba(0, 180, 216, 0.12); border: 1px solid rgba(0, 180, 216, 0.35); color: var(--secondary); display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border-radius: var(--radius-sm);">
+                                    <i class="fa-solid fa-qrcode"></i> พิมพ์ QR Code สั่งอาหารประจำโต๊ะ
+                                </button>
+                            </div>
+                        </div>
+                        <div id="adminTablesGridContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; padding: 16px 0;">
+                            <!-- Rendered dynamically in JS -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- SUB-VIEW 2: Menu Item Editor -->
+                <div id="adminMenuSubView" style="display: none; flex-direction: column; gap: 24px; width: 100%;">
+                    <div class="admin-section" style="padding: 24px;">
+                        <div class="admin-section-header" style="margin-bottom: 20px;">
+                            <h3 class="admin-section-title"><i class="fa-solid fa-utensils"></i> จัดการรายการอาหารในร้าน</h3>
+                        </div>
+                        
+                        <!-- Split Pane Layout container -->
+                        <div style="display: flex; gap: 24px; min-height: 520px; align-items: flex-start; flex-wrap: wrap;">
+                            
+                            <!-- Left Column: Menu Items List -->
+                            <div style="flex: 1; min-width: 280px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-surface); padding: 16px; max-height: 700px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-bottom: 8px;">
+                                    <h4 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin: 0;">รายการอาหาร</h4>
+                                    <button class="btn btn-primary-gradient" onclick="selectMenuForEdit(null)" style="padding: 6px 12px; font-size: 12px; border-radius: var(--radius-sm);">
+                                        <i class="fa-solid fa-plus"></i> เพิ่มเมนูใหม่
+                                    </button>
+                                </div>
+                                <div id="adminMenuListContainer" style="display: flex; flex-direction: column; gap: 6px;">
+                                    <!-- Populated with list items like: 01. กะเพราหมูสับ -->
+                                </div>
+                            </div>
+                            
+                            <!-- Right Column: Detail & Edit Form -->
+                            <div id="adminMenuDetailContainer" style="flex: 1.3; min-width: 320px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-surface); padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+                                <!-- Detailed view/form of the selected item, updated dynamically -->
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-VIEW 2: Sales Reports Page -->
+                <div id="adminSalesSubView" style="display: none; flex-direction: column; gap: 24px; width: 100%;">
+                    
+                    <!-- Official Print Header (Visible ONLY during print) -->
+                    <div id="salesReportPrintHeader" class="sales-report-print-header" style="display: none;">
+                        <div class="print-brand-row">
+                            <div class="print-brand-logo">
+                                <i class="fa-solid fa-crown" style="color: #ff5e36; font-size: 24px;"></i>
+                                <span class="print-brand-title">ร้าน ราชา กะเพรา (Raja Krapao)</span>
+                            </div>
+                            <div class="print-meta-right">
+                                <div><strong>พิมพ์เมื่อ:</strong> <span id="printGeneratedDateText">-</span></div>
+                                <div><strong>ผู้พิมพ์รายงาน:</strong> <span id="printStaffNameText">ผู้จัดการร้าน</span></div>
+                            </div>
+                        </div>
+                        <div class="print-report-title-row">
+                            <h2 class="print-report-title">รายงานสรุปผลประกอบการและยอดขาย (Financial & Sales Report)</h2>
+                            <div class="print-period-badge">
+                                <strong>ช่วงเวลาข้อมูล:</strong> <span id="printDateRangeText">ทั้งหมด</span>
+                            </div>
+                        </div>
+                        <hr class="print-divider">
+                    </div>
+
+                    <!-- Screen Action & Title Bar (Hidden in print) -->
+                    <div class="sales-dashboard-top-bar admin-section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                        <div>
+                            <h3 class="admin-section-title" style="margin-bottom: 4px; display: flex; align-items: center; gap: 10px;">
+                                <i class="fa-solid fa-chart-line" style="color: var(--primary);"></i> แดชบอร์ดสรุปยอดขายและผลประกอบการ
+                            </h3>
+                            <p style="font-size: 13px; color: var(--text-muted); margin: 0;">
+                                สรุปยอดขายจริง รายจ่าย กำไรสุทธิ และ 5 อันดับเมนูยอดนิยม พร้อมพิมพ์รายงาน
+                            </p>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="printSalesReport()" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 9px 18px; border-radius: var(--radius-sm); box-shadow: 0 4px 14px rgba(255, 94, 54, 0.35); cursor: pointer;">
+                                <i class="fa-solid fa-print"></i> พิมพ์รายงาน (A4)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Date Filtering Toolbar -->
+                    <div class="sales-filter-card" style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px 20px; display: flex; flex-direction: column; gap: 14px;">
+                        <!-- Presets Row -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <span style="font-size: 13px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+                                    <i class="fa-regular fa-clock" style="color: var(--primary);"></i> เลือกด่วน:
+                                </span>
+                                <div class="sales-preset-group" style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                    <button type="button" class="sales-preset-btn" onclick="setSalesDatePreset('today')" id="presetBtn_today">วันนี้</button>
+                                    <button type="button" class="sales-preset-btn" onclick="setSalesDatePreset('yesterday')" id="presetBtn_yesterday">เมื่อวาน</button>
+                                    <button type="button" class="sales-preset-btn" onclick="setSalesDatePreset('7days')" id="presetBtn_7days">7 วันล่าสุด</button>
+                                    <button type="button" class="sales-preset-btn" onclick="setSalesDatePreset('30days')" id="presetBtn_30days">30 วันล่าสุด</button>
+                                    <button type="button" class="sales-preset-btn" onclick="setSalesDatePreset('this-month')" id="presetBtn_this-month">เดือนนี้</button>
+                                    <button type="button" class="sales-preset-btn" onclick="setSalesDatePreset('last-month')" id="presetBtn_last-month">เดือนที่แล้ว</button>
+                                    <button type="button" class="sales-preset-btn active" onclick="setSalesDatePreset('all')" id="presetBtn_all">ทั้งหมด</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Custom Date Range Row -->
+                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-top: 10px; border-top: 1px dashed var(--border);">
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);"><i class="fa-regular fa-calendar-days"></i> กำหนดเอง:</span>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <label for="salesStartDate" style="font-size: 12px; color: var(--text-muted); font-weight: 600;">ตั้งแต่</label>
+                                    <input type="date" id="salesStartDate" style="padding: 7px 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-main); font-size: 13px; font-weight: 600; outline: none;">
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <label for="salesEndDate" style="font-size: 12px; color: var(--text-muted); font-weight: 600;">ถึง</label>
+                                    <input type="date" id="salesEndDate" style="padding: 7px 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-main); font-size: 13px; font-weight: 600; outline: none;">
+                                </div>
+                                <button type="button" class="btn btn-secondary" onclick="applyCustomSalesDateRange()" style="padding: 7px 14px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                                    <i class="fa-solid fa-filter"></i> นำไปใช้
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="resetSalesDateFilter()" style="padding: 7px 12px; font-size: 13px; color: var(--text-muted); cursor: pointer;" title="รีเซ็ตเป็นทั้งหมด">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Filter Summary Banner -->
+                    <div id="salesReportActiveFilterBanner" style="display: flex; align-items: center; justify-content: space-between; background: rgba(255, 94, 54, 0.08); border: 1px solid rgba(255, 94, 54, 0.25); border-radius: var(--radius-sm); padding: 10px 16px;">
+                        <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-main);">
+                            <i class="fa-solid fa-calendar-check" style="color: var(--primary); font-size: 16px;"></i>
+                            <span id="salesReportActiveFilterText">กำลังแสดงข้อมูล: <strong>ทั้งหมด (All Time)</strong></span>
+                        </div>
+                        <span id="salesReportOrderCountBadge" style="font-size: 12px; font-weight: 700; color: var(--primary); background: rgba(255, 94, 54, 0.12); padding: 3px 10px; border-radius: 20px;">
+                            0 บิล
+                        </span>
+                    </div>
+
+                    <!-- Dashboard KPI Metric Cards Grid -->
+                    <div class="sales-kpi-grid" id="salesReportKpiGrid">
+                        <!-- Card 1: Total Revenue -->
+                        <div class="sales-kpi-card card-revenue">
+                            <div class="kpi-icon-box" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                                <i class="fa-solid fa-sack-dollar"></i>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-label">ยอดขายรวม (Total Revenue)</span>
+                                <strong class="kpi-value" id="kpiTotalRevenue" style="color: #10b981;">0 B</strong>
+                                <span class="kpi-subtext" id="kpiRevenueSubtext">เงินสด: 0 B | สแกน: 0 B</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Total Expenses -->
+                        <div class="sales-kpi-card card-expense">
+                            <div class="kpi-icon-box" style="background: rgba(239, 68, 68, 0.12); color: #ef4444;">
+                                <i class="fa-solid fa-receipt"></i>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-label">รายจ่ายรวม (Total Expenses)</span>
+                                <strong class="kpi-value" id="kpiTotalExpenses" style="color: #ef4444;">0 B</strong>
+                                <span class="kpi-subtext" id="kpiExpenseSubtext">รวมต้นทุนและค่าใช้จ่ายร้าน</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Net Profit -->
+                        <div class="sales-kpi-card card-profit">
+                            <div class="kpi-icon-box" id="kpiProfitIconBox" style="background: rgba(255, 94, 54, 0.12); color: var(--primary);">
+                                <i class="fa-solid fa-scale-balanced"></i>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-label">กำไรสุทธิ (Net Profit)</span>
+                                <strong class="kpi-value" id="kpiNetProfit">0 B</strong>
+                                <span class="kpi-subtext" id="kpiNetProfitMargin">อัตรากำไร: 0.0%</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 4: Total Orders -->
+                        <div class="sales-kpi-card card-orders">
+                            <div class="kpi-icon-box" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+                                <i class="fa-solid fa-clipboard-check"></i>
+                            </div>
+                            <div class="kpi-info">
+                                <span class="kpi-label">จำนวนบิลสำเร็จ (Total Orders)</span>
+                                <strong class="kpi-value" id="kpiTotalOrders">0 บิล</strong>
+                                <span class="kpi-subtext" id="kpiAvgTicket">ยอดเฉลี่ย: 0 B / บิล</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 5: Payment Split -->
+                        <div class="sales-kpi-card card-payment">
+                            <div class="kpi-icon-box" style="background: rgba(168, 85, 247, 0.12); color: #a855f7;">
+                                <i class="fa-solid fa-money-bill-transfer"></i>
+                            </div>
+                            <div class="kpi-info" style="width: 100%;">
+                                <span class="kpi-label">สัดส่วนชำระ (Payment Split)</span>
+                                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 2px;">
+                                    <strong class="kpi-value" style="font-size: 16px;" id="kpiPaymentRatio">เงินสด 0% | สแกน 0%</strong>
+                                </div>
+                                <div class="sales-split-progress" style="height: 6px; border-radius: 3px; background: rgba(0,0,0,0.1); margin-top: 6px; overflow: hidden; display: flex;">
+                                    <div id="kpiCashRatioBar" style="background: #10b981; width: 50%; transition: width 0.3s;" title="เงินสด"></div>
+                                    <div id="kpiScanRatioBar" style="background: #3b82f6; width: 50%; transition: width 0.3s;" title="สแกน QR"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Middle Section: 5 Best Sellers & Expense Breakdown -->
+                    <div class="sales-dashboard-middle-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px;">
+                        
+                        <!-- Top 5 Best Sellers -->
+                        <div class="admin-section" style="margin-bottom: 0;">
+                            <div class="admin-section-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                <h4 class="admin-section-title" style="font-size: 15px; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-fire" style="color: #f59e0b;"></i> 5 อันดับเมนูขายดียอดนิยม
+                                </h4>
+                                <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">(ตามยอดสั่งซื้อ)</span>
+                            </div>
+                            <div class="table-wrapper" style="margin-top: 10px;">
+                                <table class="order-table" style="font-size: 13px;">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 48px; text-align: center;">อันดับ</th>
+                                            <th>ชื่อเมนู</th>
+                                            <th style="text-align: right; width: 80px;">จำนวนจาน</th>
+                                            <th style="text-align: right; width: 110px;">ยอดขายรวม</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="salesReportTopItemsBody">
+                                        <!-- Loaded dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Expense Breakdown by Category -->
+                        <div class="admin-section" style="margin-bottom: 0;">
+                            <div class="admin-section-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                <h4 class="admin-section-title" style="font-size: 15px; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-pie-chart" style="color: #ec4899;"></i> สรุปรายจ่ายแยกตามหมวดหมู่
+                                </h4>
+                                <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">(จากระบบบันทึกรายจ่าย)</span>
+                            </div>
+                            <div class="table-wrapper" style="margin-top: 10px;">
+                                <table class="order-table" style="font-size: 13px;">
+                                    <thead>
+                                        <tr>
+                                            <th>หมวดหมู่</th>
+                                            <th style="text-align: center; width: 80px;">รายการ</th>
+                                            <th style="text-align: right; width: 110px;">ยอดรวม</th>
+                                            <th style="text-align: right; width: 70px;">สัดส่วน</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="salesReportExpenseCategoryBody">
+                                        <!-- Loaded dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Sales Table Section -->
+                    <div class="admin-section" style="margin-bottom: 0;">
+                        <div class="admin-section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                            <h3 class="admin-section-title" style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-table-list" style="color: var(--primary);"></i> ตารางรายละเอียดรายงานยอดขาย
+                            </h3>
+                            
+                            <div class="view-tabs" style="margin-bottom: 0;">
+                                <button class="view-tab active" id="salesTabDaily" onclick="switchSalesTab('daily')">
+                                    <i class="fa-solid fa-calendar-day"></i> มุมมองรายวัน
+                                </button>
+                                <button class="view-tab" id="salesTabMonthly" onclick="switchSalesTab('monthly')">
+                                    <i class="fa-solid fa-calendar-days"></i> มุมมองรายเดือน
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-wrapper">
+                            <table class="order-table" id="salesMainReportTable">
+                                <thead>
+                                    <tr id="adminSalesReportHeader">
+                                        <th>วันที่</th>
+                                        <th>ยอดขายรวม</th>
+                                        <th>เงินสด</th>
+                                        <th>สแกน QR</th>
+                                        <th>จำนวนบิล</th>
+                                        <th>รายจ่าย</th>
+                                        <th>กำไรสุทธิ</th>
+                                        <th class="no-print">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminDailySalesReportBody">
+                                    <!-- Loaded dynamically via JS -->
+                                </tbody>
+                                <tfoot id="adminDailySalesReportFoot" style="font-weight: 700; background: rgba(0,0,0,0.03); border-top: 2px solid var(--border);">
+                                    <!-- Grand total populated dynamically -->
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Official Print Sign-off Footer (Visible ONLY in print) -->
+                    <div id="salesReportPrintFooter" class="sales-report-print-footer" style="display: none;">
+                        <div class="print-signatures-grid">
+                            <div class="print-signature-box">
+                                <div class="sig-line">....................................................................</div>
+                                <div class="sig-name">( <span id="printSignPreparedName">ผู้จัดทำรายงาน</span> )</div>
+                                <div class="sig-title">ตำแหน่ง: พนักงานบัญชี / แคชเชียร์</div>
+                                <div class="sig-date">วันที่: ........ / ........ / ................</div>
+                            </div>
+                            <div class="print-signature-box">
+                                <div class="sig-line">....................................................................</div>
+                                <div class="sig-name">( <span id="printSignApprovedName">คุณราชา ยอดฝีมือ</span> )</div>
+                                <div class="sig-title">ตำแหน่ง: ผู้จัดการร้าน / เจ้าของร้าน</div>
+                                <div class="sig-date">วันที่: ........ / ........ / ................</div>
+                            </div>
+                        </div>
+                        <div class="print-footer-notice">
+                            เอกสารนี้สร้างขึ้นโดยระบบ POS ร้านราชา กะเพรา เพื่อใช้สรุปข้อมูลประกอบการบริหารร้าน
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- SUB-VIEW 3: Staff Management Page -->
+                <div id="adminStaffSubView" style="display: none; flex-direction: column; gap: 24px; width: 100%;">
+                    
+                    <!-- Store Owner Section (ข้อมูลเจ้าของร้าน) -->
+                    <div class="admin-section store-owner-section">
+                        <div class="admin-section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                            <h3 class="admin-section-title" style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fa-solid fa-crown" style="color: #f59e0b;"></i> ข้อมูลเจ้าของร้าน (Store Owner)
+                            </h3>
+                            <button class="btn btn-secondary" onclick="openEditOwnerModal()" style="display: flex; align-items: center; gap: 8px; border: 1px solid rgba(245, 158, 11, 0.4); color: #b45309; background: rgba(245, 158, 11, 0.08); font-weight: 600; cursor: pointer;">
+                                <i class="fa-solid fa-user-pen"></i> แก้ไขข้อมูลเจ้าของร้าน
+                            </button>
+                        </div>
+                        <div id="storeOwnerCardContainer">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Staff Manager Section (ระบบจัดการข้อมูลพนักงานในร้าน) -->
+                    <div class="admin-section">
+                        <div class="admin-section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                            <h3 class="admin-section-title"><i class="fa-solid fa-users"></i> ระบบจัดการข้อมูลพนักงานในร้าน</h3>
+                            <button class="btn btn-primary-gradient" onclick="openAddStaffModal()">
+                                <i class="fa-solid fa-user-plus"></i> เพิ่มพนักงานใหม่
+                            </button>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="order-table">
+                                <thead>
+                                    <tr>
+                                        <th>รหัสพนักงาน</th>
+                                        <th>ชื่อ-นามสกุล</th>
+                                        <th>ชื่อผู้ใช้งาน (Username)</th>
+                                        <th>ตำแหน่ง</th>
+                                        <th>เบอร์โทรศัพท์</th>
+                                        <th>สถานะการทำงาน</th>
+                                        <th>จัดการข้อมูล</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminStaffTableBody">
+                                    <!-- Loaded dynamically via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-VIEW 4: Stock Inventory -->
+                <div id="adminStockSubView" style="display: none; flex-direction: column; gap: 24px; width: 100%;">
+                    <div class="admin-section">
+                        <div class="admin-section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: none; padding-bottom: 0;">
+                            <h3 class="admin-section-title"><i class="fa-solid fa-boxes-stacked"></i> สต็อกวัตถุดิบปรุงอาหาร</h3>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn" style="background: linear-gradient(135deg, #10b981, #059669); color: white; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; border: none; cursor: pointer;" onclick="openAddStockInModal()">
+                                    <i class="fa-solid fa-dolly"></i> รับเข้าวัตถุดิบ
+                                </button>
+                                <button class="btn btn-primary-gradient" onclick="openAddInventoryModal()">
+                                    <i class="fa-solid fa-plus"></i> เพิ่มวัตถุดิบใหม่
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="order-table">
+                                <thead>
+                                    <tr>
+                                        <th>รหัสวัตถุดิบ</th>
+                                        <th>ชื่อวัตถุดิบ</th>
+                                        <th>จำนวนคงเหลือ</th>
+                                        <th>เกณฑ์เตือนขั้นต่ำ</th>
+                                        <th>สถานะสต็อก</th>
+                                        <th>จัดการสต็อก</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminInventoryTableBody">
+                                    <!-- Loaded dynamically via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-VIEW 5: Requisition History -->
+                <div id="adminRequisitionsSubView" style="display: none; flex-direction: column; gap: 24px; width: 100%;">
+                    <div class="admin-section">
+                        <div class="admin-section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: none; padding-bottom: 0;">
+                            <h3 class="admin-section-title"><i class="fa-solid fa-clipboard-list"></i> ประวัติรายงานการเบิกจ่ายพัสดุ/วัตถุดิบ</h3>
+                            <button class="btn btn-primary-gradient" onclick="openAddRequisitionModal()">
+                                <i class="fa-solid fa-file-signature"></i> ทำรายการเบิกจ่ายใหม่
+                            </button>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="order-table">
+                                <thead>
+                                    <tr>
+                                        <th>รหัสรายการ</th>
+                                        <th>วัน-เวลาเบิกจ่าย</th>
+                                        <th>ชื่อวัตถุดิบ</th>
+                                        <th>จำนวนที่เบิก</th>
+                                        <th>ผู้เบิกจ่าย (พนักงาน)</th>
+                                        <th>หมายเหตุ / วัตถุประสงค์</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminRequisitionsTableBody">
+                                    <!-- Loaded dynamically via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-VIEW: Stock-In History -->
+                <div id="adminStockInSubView" style="display: none; flex-direction: column; gap: 24px; width: 100%;">
+                    <div class="admin-section">
+                        <div class="admin-section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: none; padding-bottom: 0;">
+                            <h3 class="admin-section-title"><i class="fa-solid fa-dolly"></i> ประวัติการรับเข้าวัตถุดิบสต็อก</h3>
+                            <button class="btn btn-primary-gradient" style="background: linear-gradient(135deg, #10b981, #059669);" onclick="openAddStockInModal()">
+                                <i class="fa-solid fa-dolly"></i> รับเข้าวัตถุดิบใหม่
+                            </button>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="order-table">
+                                <thead>
+                                    <tr>
+                                        <th>รหัสรายการ</th>
+                                        <th>วัน-เวลารับเข้า</th>
+                                        <th>ชื่อวัตถุดิบ</th>
+                                        <th>จำนวนที่รับเข้า</th>
+                                        <th>ต้นทุนรวม (บาท)</th>
+                                        <th>ผู้บันทึก</th>
+                                        <th>หมายเหตุ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminStockInTableBody">
+                                    <!-- Loaded dynamically via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-VIEW 6: Toppings Manager -->
+                <div id="adminToppingsSubView" style="display: none; flex-direction: column; gap: 24px; width: 100%;">
+                    <div class="admin-section" style="padding: 24px;">
+                        <div class="admin-section-header" style="margin-bottom: 20px;">
+                            <h3 class="admin-section-title"><i class="fa-solid fa-layer-group"></i> จัดการท็อปปิ้งอาหาร</h3>
+                        </div>
+                        
+                        <!-- Split Pane Layout container -->
+                        <div style="display: flex; gap: 24px; min-height: 520px; align-items: flex-start; flex-wrap: wrap;">
+                            
+                            <!-- Left Column: Topping Items List -->
+                            <div style="flex: 1; min-width: 280px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-surface); padding: 16px; max-height: 700px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-bottom: 8px;">
+                                    <h4 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin: 0;">รายการท็อปปิ้ง</h4>
+                                    <button class="btn btn-primary-gradient" onclick="selectToppingForEdit(null)" style="padding: 6px 12px; font-size: 12px; border-radius: var(--radius-sm);">
+                                        <i class="fa-solid fa-plus"></i> เพิ่มท็อปปิ้งใหม่
+                                    </button>
+                                </div>
+                                <div id="adminToppingListContainer" style="display: flex; flex-direction: column; gap: 6px;">
+                                    <!-- Populated dynamically with unique topping cards -->
+                                </div>
+                            </div>
+                            
+                            <!-- Right Column: Detail & Edit Form with Food Checkboxes -->
+                            <div id="adminToppingDetailContainer" style="flex: 1.5; min-width: 340px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-surface); padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+                                <!-- Detailed view/form of selected topping, with name, price, and food menu checkboxes -->
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-VIEW 8: Expenses Manager -->
+                <div id="adminExpensesSubView" style="display: none; flex-direction: column; gap: 24px; width: 100%;">
+                    <div class="admin-section">
+                        <div class="admin-section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: none; padding-bottom: 0;">
+                            <h3 class="admin-section-title"><i class="fa-solid fa-wallet"></i> บันทึกรายจ่ายของร้าน</h3>
+                            <button class="btn btn-primary-gradient" onclick="openAddExpenseModal()">
+                                <i class="fa-solid fa-cash-register"></i> บันทึกรายจ่ายใหม่
+                            </button>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="order-table">
+                                <thead>
+                                    <tr>
+                                        <th>รหัสรายการ</th>
+                                        <th>วันที่บันทึก</th>
+                                        <th>หมวดหมู่รายจ่าย</th>
+                                        <th>รายละเอียดรายจ่าย</th>
+                                        <th>จำนวนเงิน (B)</th>
+                                        <th>ผู้บันทึกรายการ</th>
+                                        <th>จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminExpensesTableBody">
+                                    <!-- Loaded dynamically via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                    </div> <!-- Ends admin-grid-content -->
+                </div> <!-- Ends admin-content-area -->
+            </div> <!-- Ends admin-layout -->
+        </main>
+        
+    </div>
+
+    <!-- CART SIDE DRAWER PANEL -->
+    <div class="cart-drawer-overlay" id="cartOverlay">
+        <div class="cart-drawer">
+            <div class="cart-header">
+                <div class="cart-header-title">
+                    <i class="fa-solid fa-basket-shopping"></i>
+                    <h2>ตะกร้าอาหารของคุณ</h2>
+                    <span id="cartHeaderTableTag" style="display: none; font-size: 12px; font-weight: 700; color: var(--primary); background: rgba(255,94,54,0.12); border: 1px solid rgba(255,94,54,0.3); padding: 3px 8px; border-radius: 12px; margin-left: 6px;">โต๊ะ -</span>
+                </div>
+                <button class="cart-close-btn" onclick="toggleCartDrawer(false)">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="cart-items-container" id="cartItemsContainer">
+                <!-- Loaded dynamically via JS -->
+            </div>
+            
+            <div class="cart-footer-panel">
+                <div class="cart-summary-line">
+                    <span>จำนวนรายการ</span>
+                    <span id="cartTotalItemsCount">0 ชิ้น</span>
+                </div>
+                <div class="cart-summary-line total-line">
+                    <span>ยอดรวมสุทธิ</span>
+                    <span class="total-price"><span id="cartTotalPriceVal">0</span> ฿</span>
+                </div>
+                
+                <!-- Current Table Info Display (Auto-assigned via printed QR Code) -->
+                <div class="cart-table-info-box" style="margin-bottom: 16px; padding: 10px 14px; background: rgba(255, 94, 54, 0.08); border: 1.5px solid rgba(255, 94, 54, 0.3); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-main);">
+                        <i class="fa-solid fa-chair" style="color: var(--primary); font-size: 15px;"></i>
+                        <span style="color: var(--text-muted);">โต๊ะอาหารของคุณ:</span>
+                    </div>
+                    <span id="cartCurrentTableBadge" style="font-size: 15px; font-weight: 800; color: var(--primary);">โต๊ะ -</span>
+                </div>
+                
+                <!-- Alert Banner when Table is Billed -->
+                <div id="cartBilledAlert" style="display: none; margin-bottom: 14px; padding: 12px 14px; background: rgba(239, 68, 68, 0.08); border: 1.5px solid rgba(239, 68, 68, 0.35); border-radius: var(--radius-sm); text-align: center;">
+                    <div style="font-size: 13px; font-weight: 700; color: #dc2626; margin-bottom: 3px;">
+                        <i class="fa-solid fa-lock"></i> โต๊ะนี้ปิดบิลเรียบร้อยแล้ว
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">
+                        ไม่สามารถสั่งอาหารเองได้ กรุณาแจ้งพนักงานหรือทางร้านเพื่อเปิดบิลใหม่ค่ะ/ครับ
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary-gradient checkout-btn" id="cartCheckoutBtn" onclick="processCheckout()">
+                    <i class="fa-solid fa-paper-plane"></i> ยืนยันการสั่งอาหาร
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 1: FOOD DETAILS DIALOG -->
+    <div class="modal-overlay" id="foodDetailModal">
+        <div class="modal-container">
+            <button class="modal-close-btn" onclick="closeModal('foodDetailModal')">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="modal-img-wrapper">
+                <img id="detailModalImg" class="modal-detail-img" src="" alt="Food Detail Image">
+            </div>
+            <div class="modal-content-body">
+                <div class="modal-tags">
+                    <span class="card-badge" id="detailModalCategory">Category</span>
+                </div>
+                <h3 class="modal-title" id="detailModalTitle">ชื่อเมนูอาหาร</h3>
+                <div class="modal-meta">
+                    <div class="modal-meta-item">
+                        <i class="fa-solid fa-star"></i>
+                        <span id="detailModalRating">4.8</span>
+                    </div>
+                    <div class="modal-meta-item">
+                        <i class="fa-regular fa-clock"></i>
+                        <span>15-20 นาที</span>
+                    </div>
+                </div>
+                <p class="modal-desc" id="detailModalDesc">คำอธิบายรายละเอียดของอาหารเมนูชิ้นนี้ รสชาติละมุนลิ้น คัดสรรวัตถุดิบอย่างพิถีพิถันเพื่อลูกค้าทุกท่าน</p>
+                
+                <div class="modal-toppings-section" id="detailModalToppingsSection">
+                    <label class="modal-toppings-label">เลือกท็อปปิ้งเพิ่มเติม:</label>
+                    <div class="toppings-list" id="detailModalToppingsList">
+                        <!-- Dynamic checkboxes loaded via JS -->
+                    </div>
+                </div>
+
+                <div class="modal-spicy-section" id="detailModalSpicySection">
+                    <label class="modal-spicy-label">ระดับความเผ็ด:</label>
+                    <div class="spicy-selector">
+                        <label class="spicy-option">
+                            <input type="radio" name="spicyLevel" value="ไม่ใส่พริก">
+                            <span>ไม่ใส่พริก</span>
+                        </label>
+                        <label class="spicy-option">
+                            <input type="radio" name="spicyLevel" value="เผ็ดน้อย">
+                            <span>เผ็ดน้อย</span>
+                        </label>
+                        <label class="spicy-option">
+                            <input type="radio" name="spicyLevel" value="เผ็ดกลาง" checked>
+                            <span>เผ็ดกลาง</span>
+                        </label>
+                        <label class="spicy-option">
+                            <input type="radio" name="spicyLevel" value="เผ็ดมาก">
+                            <span>เผ็ดมาก</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="modal-remarks-section">
+                    <label class="modal-remarks-label">หมายเหตุพิเศษ (เช่น เผ็ดน้อย, ไม่ใส่กระเทียม):</label>
+                    <textarea id="detailModalRemarks" placeholder="ระบุความต้องการพิเศษของคุณที่นี่..."></textarea>
+                </div>
+                
+                <div class="modal-footer">
+                    <div class="modal-price-box">
+                        <span class="modal-price-label">ราคา</span>
+                        <span class="modal-price-val"><span id="detailModalPrice">0</span> ฿</span>
+                    </div>
+                    <div class="modal-action-controls">
+                        <button class="btn btn-primary-gradient" id="detailModalAddBtn">
+                            <i class="fa-solid fa-cart-plus"></i> ใส่ตะกร้าอาหาร
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: CHECKOUT SUCCESS POPUP -->
+    <div class="modal-overlay" id="checkoutSuccessModal">
+        <div class="modal-container" style="max-width: 420px;">
+            <div class="success-card">
+                <div class="success-icon-wrapper">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                <h2>สั่งอาหารเรียบร้อย!</h2>
+                <p>ทางร้านได้รับรายการอาหารของคุณแล้ว เชฟกำลังจัดเตรียมวัตถุดิบและเริ่มต้นทำอาหารให้คุณอย่างตั้งใจ</p>
+                
+                <div class="order-receipt-summary">
+                    <div class="receipt-row">
+                        <span>รหัสออเดอร์</span>
+                        <strong id="receiptOrderId">#OR-XXXX</strong>
+                    </div>
+                    <div class="receipt-row">
+                        <span>โต๊ะที่นั่ง</span>
+                        <strong id="receiptTableNum">โต๊ะ 0</strong>
+                    </div>
+                    <div class="receipt-row">
+                        <span>ราคารวมทั้งหมด</span>
+                        <strong class="receipt-amount-total"><span id="receiptTotalAmount">0</span> ฿</strong>
+                    </div>
+                </div>
+                
+                <button class="btn btn-track" onclick="trackActiveOrder()">
+                    <i class="fa-solid fa-clock-rotate-left"></i> ติดตามออเดอร์ของคุณ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: ORDER STATUS TRACKER -->
+    <div class="modal-overlay" id="orderTrackModal">
+        <div class="modal-container" style="max-width: 440px;">
+            <button class="modal-close-btn" onclick="closeModal('orderTrackModal')">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="tracker-card">
+                <h2>ติดตามสถานะการปรุงอาหาร</h2>
+                <div class="tracker-id" id="trackOrderIdLabel">ออเดอร์: #OR-XXXX (โต๊ะ X)</div>
+                
+                <div class="tracker-timeline">
+                    <!-- Step 1 -->
+                    <div class="tracker-step" id="trackStepPending">
+                        <div class="tracker-node"><i class="fa-solid fa-clipboard-list"></i></div>
+                        <div class="tracker-step-title">ได้รับออเดอร์แล้ว</div>
+                        <div class="tracker-step-desc">รอคิวปรุงอาหารจากเชฟ</div>
+                    </div>
+                    
+                    <!-- Step 2 -->
+                    <div class="tracker-step" id="trackStepCooking">
+                        <div class="tracker-node"><i class="fa-solid fa-fire-burner"></i></div>
+                        <div class="tracker-step-title">กำลังจัดทำอาหาร</div>
+                        <div class="tracker-step-desc">ปรุงอาหารสดใหม่ทีละจานอย่างพิถีพิถัน</div>
+                    </div>
+                    
+                    <!-- Step 3 -->
+                    <div class="tracker-step" id="trackStepReady">
+                        <div class="tracker-node"><i class="fa-solid fa-bell"></i></div>
+                        <div class="tracker-step-title">อาหารพร้อมเสิร์ฟ</div>
+                        <div class="tracker-step-desc">ปรุงเสร็จเรียบร้อยและกำลังยกออกจากครัวมาโต๊ะคุณ</div>
+                    </div>
+                    
+                    <!-- Step 4 -->
+                    <div class="tracker-step" id="trackStepDelivered">
+                        <div class="tracker-node"><i class="fa-solid fa-plate-wheat"></i></div>
+                        <div class="tracker-step-title">เสิร์ฟถึงโต๊ะแล้ว</div>
+                        <div class="tracker-step-desc">ทานให้อร่อยนะคะ/ครับ ขอบพระคุณค่ะที่มาใช้บริการ</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3.5: TABLE BILLED NOTIFICATION MODAL -->
+    <div class="modal-overlay" id="billedNoticeModal">
+        <div class="modal-container" style="max-width: 420px; text-align: center; padding: 32px 24px;">
+            <button class="modal-close-btn" onclick="closeModal('billedNoticeModal')">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; border: 2px solid rgba(16, 185, 129, 0.35);">
+                <i class="fa-solid fa-circle-check" style="font-size: 42px; color: #10b981;"></i>
+            </div>
+            <h2 style="font-size: 20px; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">
+                โต๊ะนี้ชำระเงิน / ปิดบิลเรียบร้อยแล้ว
+            </h2>
+            <div id="billedNoticeTableLabel" style="font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 14px;">
+                โต๊ะอาหารที่ -
+            </div>
+            <p style="font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">
+                ทางร้านได้ทำการปิดบิลและรับชำระเงินเรียบร้อยแล้วค่ะ/ครับ<br>
+                ขอบพระคุณที่มาอุดหนุนร้านราชากะเพรา<br>
+                <span style="font-size: 13px; color: var(--text-main); font-weight: 600; display: block; margin-top: 12px; padding: 12px; background: rgba(255, 94, 54, 0.08); border-radius: var(--radius-sm); border: 1px dashed rgba(255, 94, 54, 0.35);">
+                    <i class="fa-solid fa-bell" style="color: var(--primary);"></i> หากต้องการสั่งอาหารเพิ่มเติมหรือเปิดบิลใหม่<br><strong style="color: var(--primary); font-size: 14px;">กรุณาแจ้งพนักงานหรือทางร้านเพื่อเปิดบิลให้นะคะ/ครับ</strong>
+                </span>
+            </p>
+            <div>
+                <button class="btn btn-secondary" onclick="closeModal('billedNoticeModal')" style="width: 100%; justify-content: center; padding: 12px; font-weight: 700; font-size: 14px;">
+                    รับทราบ / ปิดหน้าต่าง
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: ADD/EDIT MENU MODAL FORM -->
+    <div class="modal-overlay" id="menuFormModal">
+        <div class="modal-container" style="max-width: 480px;">
+            <button class="modal-close-btn" onclick="closeModal('menuFormModal')">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="modal-content-body">
+                <h3 class="modal-title" style="margin-bottom: 20px;" id="menuFormTitle">เพิ่มเมนูอาหารใหม่</h3>
+                <form id="menuEditorForm" onsubmit="saveMenuItem(event)">
+                    <input type="hidden" id="formActionState" value="add">
+                    <input type="hidden" id="formItemId" value="">
+                    
+                    <div class="form-group">
+                        <label for="formItemName">ชื่ออาหาร/เครื่องดื่ม</label>
+                        <input type="text" id="formItemName" required placeholder="เช่น กะเพราหมูสับราชา">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="formItemPrice">ราคา (บาท)</label>
+                            <input type="number" id="formItemPrice" required min="1" placeholder="89">
+                        </div>
+                        <div class="form-group">
+                            <label for="formItemCategory">หมวดหมู่</label>
+                            <select id="formItemCategory" required>
+                                <option value="basil-pork-chicken">กะเพราหมู-ไก่</option>
+                                  <option value="basil-beef">กะเพราเนื้อพรีเมียม</option>
+                                  <option value="basil-seafood">กะเพราทะเลเดือด</option>
+                                  <option value="others">อาหารจานเดียวอื่น</option>
+                                  <option value="drinks">เครื่องดื่มเย็นๆ</option>
+                              </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="formItemImageUrl">ลิงก์รูปภาพอาหาร</label>
+                        <input type="text" id="formItemImageUrl" required placeholder="ใส่ลิงก์รูปภาพทั่วไป เช่น https://... หรือวางลิงก์รูปภาพดึงตรง">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="formItemRating">คะแนนจำลอง (1-5)</label>
+                            <input type="number" id="formItemRating" required min="1" max="5" step="0.1" value="4.8">
+                        </div>
+                        <div class="form-group">
+                            <label for="formItemBadge">ป้ายพิเศษ (ถ้ามี)</label>
+                            <input type="text" id="formItemBadge" placeholder="เช่น แนะนำ, ขายดี, เผ็ดรสจัด">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="formItemDesc">คำอธิบายรายละเอียดอาหาร</label>
+                        <textarea id="formItemDesc" required placeholder="เช่น กะเพราหมูสับสูตรโบราณผัดแห้งๆ พริกแห้งหอมกรุ่นเสิร์ฟพร้อมข้าวสวยร้อนๆ..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="formItemToppings">ตัวเลือกท็อปปิ้งเพิ่มเติม (รูปแบบ ชื่อ:ราคา เช่น ไข่ดาว:10, ไข่เจียว:10, พิเศษ:10)</label>
+                        <input type="text" id="formItemToppings" placeholder="เช่น ไข่ดาวกรอบ:15, ไข่เจียวฟูนุ่ม:15, เพิ่มเนื้อสัตว์พิเศษ:30">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('menuFormModal')">ยกเลิก</button>
+                        <button type="submit" class="btn btn-primary-gradient" id="btnSubmitForm">บันทึกข้อมูล</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: ADMIN AUTHENTICATION DIALOG -->
+    <div class="modal-overlay" id="adminAuthModal">
+        <div class="modal-container" style="max-width: 400px;">
+            <button class="modal-close-btn" onclick="closeModal('adminAuthModal')">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div style="padding: 30px; text-align: center;">
+                <div style="font-size: 40px; color: var(--primary); margin-bottom: 16px;">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h3 style="margin-bottom: 10px; color: var(--text-main);">กรุณากรอกรหัสผ่านหลังบ้าน</h3>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">เฉพาะผู้ดูแลร้านเท่านั้นที่สามารถเข้าถึงส่วนนี้ได้</p>
+                
+                <div class="form-group" style="text-align: left;">
+                    <label for="adminPasswordInput" style="display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">รหัสผ่านหลังบ้าน (Passcode)</label>
+                    <input type="password" id="adminPasswordInput" placeholder="กรอกรหัสผ่านเพื่อเข้าใช้งาน" style="text-align: center; letter-spacing: 4px; font-weight: 700; font-size: 18px; width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                </div>
+                
+                <button class="btn btn-primary-gradient" onclick="verifyAdminPassword()" style="width: 100%; justify-content: center; padding: 12px; font-size: 14px; margin-top: 10px;">
+                    <i class="fa-solid fa-unlock"></i> เข้าสู่ระบบหลังบ้าน
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 6: CUSTOMER ORDER HISTORY DIALOG -->
+    <div class="modal-overlay" id="orderHistoryModal">
+        <div class="modal-container" style="max-width: 500px;">
+            <button class="modal-close-btn" onclick="closeModal('orderHistoryModal')">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div style="padding: 24px;">
+                <h3 style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+                    <i class="fa-solid fa-utensils" style="color: var(--primary);"></i> ติดตามสถานะออเดอร์ของคุณ
+                </h3>
+                
+                <!-- Customer Table Move Section -->
+                <div id="customerTableMoveSection" style="margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: var(--radius-sm); display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <span style="font-size: 13px; color: var(--text-main); font-weight: 600;"><i class="fa-solid fa-chair" style="color: var(--primary);"></i> ย้ายโต๊ะอาหารปัจจุบัน:</span>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <select id="customerNewTableSelect" style="padding: 4px 8px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm); font-size: 13px; outline: none; cursor: pointer;">
+                                <!-- Populated dynamically -->
+                            </select>
+                            <button class="btn btn-primary" onclick="confirmCustomerMoveTable()" style="padding: 6px 12px; font-size: 12px; height: auto; line-height: 1.2;">ย้ายโต๊ะ</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="orderHistoryList" style="max-height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px; padding-right: 4px;">
+                    <!-- History items loaded dynamically -->
+                </div>
+                
+                <button class="btn btn-secondary" onclick="closeModal('orderHistoryModal')" style="width: 100%; justify-content: center;">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 7.5: SALES REPORT DRILLDOWN BILLS DIALOG -->
+    <div class="modal-overlay" id="salesDrilldownModal">
+        <div class="modal-container" style="max-width: 960px; width: 95%;">
+            <button class="modal-close-btn" onclick="closeModal('salesDrilldownModal')">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div style="padding: 24px;">
+                <h3 style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: var(--text-main);" id="salesDrilldownTitle">
+                    <i class="fa-solid fa-file-invoice-dollar" style="color: var(--primary);"></i> รายละเอียดบิลยอดขาย
+                </h3>
+
+                <!-- Summary Metrics Cards inside Modal -->
+                <div id="salesDrilldownMetrics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                    <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; display: flex; flex-direction: column; gap: 4px;">
+                        <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">ยอดขายรวมทั้งเดือน</span>
+                        <strong style="font-size: 18px; color: var(--primary);" id="modalMetricTotalSales">0 B</strong>
+                    </div>
+                    <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; display: flex; flex-direction: column; gap: 4px;">
+                        <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;"><i class="fa-solid fa-money-bill-wave" style="color: #10b981;"></i> เงินสด</span>
+                        <strong style="font-size: 16px; color: #10b981;" id="modalMetricCashSales">0 B</strong>
+                    </div>
+                    <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; display: flex; flex-direction: column; gap: 4px;">
+                        <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;"><i class="fa-solid fa-qrcode" style="color: #0284c7;"></i> สแกน QR</span>
+                        <strong style="font-size: 16px; color: #0284c7;" id="modalMetricScanSales">0 B</strong>
+                    </div>
+                    <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; display: flex; flex-direction: column; gap: 4px;">
+                        <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">จำนวนบิลทั้งหมด</span>
+                        <strong style="font-size: 16px; color: var(--text-main);" id="modalMetricTotalOrders">0 บิล</strong>
+                    </div>
+                </div>
+
+                <!-- Modal Sub-Tabs (for Monthly view) -->
+                <div id="salesDrilldownTabControls" style="display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 16px;">
+                    <button class="admin-sub-tab active" id="btnModalTabDays" onclick="switchModalDrilldownTab('days')" style="background: transparent; border: none; color: var(--primary); font-weight: 700; padding: 8px 16px; cursor: pointer;">
+                        <i class="fa-solid fa-calendar-days"></i> ยอดขายแยกตามวัน
+                    </button>
+                    <button class="admin-sub-tab" id="btnModalTabBills" onclick="switchModalDrilldownTab('bills')" style="background: transparent; border: none; color: var(--text-muted); font-weight: 600; padding: 8px 16px; cursor: pointer;">
+                        <i class="fa-solid fa-receipt"></i> รายการบิลคำสั่งซื้อ (<span id="modalBillsCount">0</span>)
+                    </button>
+                </div>
+
+                <!-- Tab Content 1: Daily Breakdown of Month -->
+                <div class="table-wrapper" id="salesDrilldownDaysWrapper" style="max-height: 400px; overflow-y: auto;">
+                    <table class="order-table">
+                        <thead>
+                            <tr>
+                                <th>วันที่</th>
+                                <th>ยอดขายรวม</th>
+                                <th>บิลเงินสด</th>
+                                <th>บิลสแกน QR</th>
+                                <th>จำนวนบิล</th>
+                                <th>ดูบิลของวัน</th>
+                            </tr>
+                        </thead>
+                        <tbody id="salesDrilldownDaysTableBody">
+                            <!-- Loaded dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Tab Content 2: Bills list of Month/Day -->
+                <div class="table-wrapper" id="salesDrilldownBillsWrapper" style="display: none; max-height: 400px; overflow-y: auto;">
+                    <table class="order-table">
+                        <thead>
+                            <tr>
+                                <th>รหัสออเดอร์</th>
+                                <th>วันที่</th>
+                                <th>เวลาสั่งซื้อ</th>
+                                <th>โต๊ะ</th>
+                                <th>รายการอาหาร</th>
+                                <th>ผู้รับออเดอร์</th>
+                                <th>ยอดรวมบิล</th>
+                                <th>วิธีชำระเงิน</th>
+                                <th>พิมพ์ใบเสร็จ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="salesDrilldownTableBody">
+                            <!-- Loaded dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <button class="btn btn-secondary" id="btnViewInMainDailyTable" onclick="viewMonthInMainDailyTable()" style="display: none; padding: 8px 16px; font-size: 13px;">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> ดูเฉพาะเดือนนี้ในตารางหลัก
+                    </button>
+                    <button class="btn btn-secondary" onclick="closeModal('salesDrilldownModal')" style="margin-left: auto;">ปิดหน้าต่าง</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 7: RECEIPT PREVIEW DIALOG -->
+    <div class="modal-overlay" id="receiptPreviewModal">
+        <div class="modal-container" style="max-width: 340px; background: #ffffff; color: #333333; font-family: 'Courier New', Courier, monospace; border: 2px solid #333333; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); position: relative;">
+            <button class="modal-close-btn" onclick="closeModal('receiptPreviewModal')" style="color: #333333; top: 12px; right: 12px; width: 30px; height: 30px; font-size: 14px;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div style="padding: 16px; text-align: left;" id="receiptPrintableArea">
+                <!-- Header -->
+                <div style="text-align: center; margin-bottom: 8px;">
+                    <h2 style="font-size: 18px; font-weight: bold; margin: 0 0 4px; color: #111;">ราชากะเพรา</h2>
+                    <p style="font-size: 11px; margin: 0; color: #555;">ต้นตำรับกะเพราพริกแห้งรสจัดจ้าน</p>
+                    <p style="font-size: 10px; margin: 1px 0 0; color: #555;">โทร: <span id="printReceiptStorePhone">063-516-4606</span></p>
+                </div>
+                
+                <div style="border-top: 1px dashed #333; margin: 6px 0;"></div>
+                
+                <!-- Info -->
+                <div style="font-size: 11px; line-height: 1.4; color: #111;">
+                    <div><strong>เลขที่ใบเสร็จ:</strong> <span id="printReceiptId">#OR-XXXX</span></div>
+                    <div><strong>วันที่สั่ง:</strong> <span id="printReceiptDate">5/7/2026</span></div>
+                    <div><strong>เวลา:</strong> <span id="printReceiptTime">19:56 น.</span></div>
+                    <div><strong>โต๊ะที่นั่ง:</strong> <span id="printReceiptTable">โต๊ะ 1</span></div>
+                    <div><strong>ผู้รับออเดอร์:</strong> <span id="printReceiptStaffName">-</span></div>
+                    <div id="printReceiptPaymentMethodRow" style="display: none;"><strong>วิธีชำระเงิน:</strong> <span id="printReceiptPaymentMethod">เงินสด</span></div>
+                </div>
+                
+                <div style="border-top: 1px dashed #333; margin: 6px 0;"></div>
+                
+                <!-- Items Table -->
+                <div id="printReceiptItems" style="font-size: 11px; line-height: 1.4; color: #111; display: flex; flex-direction: column; gap: 4px;">
+                    <!-- Items rendered dynamically in JS -->
+                </div>
+                
+                <div style="border-top: 1px dashed #333; margin: 6px 0;"></div>
+                
+                <!-- Calculations -->
+                <div style="font-size: 11px; line-height: 1.4; color: #111;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                        <span>รวมค่าอาหาร:</span>
+                        <strong id="printReceiptSubtotal">0 ฿</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                        <span>ภาษีมูลค่าเพิ่ม (VAT 7%):</span>
+                        <strong id="printReceiptVat">0 ฿</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; margin-top: 4px; border-top: 1px dashed #333; padding-top: 4px;">
+                        <span>ยอดชำระสุทธิ:</span>
+                        <span id="printReceiptTotal">0 ฿</span>
+                    </div>
+                </div>
+                
+                <div style="border-top: 1px dashed #333; margin: 6px 0;"></div>
+                
+                <!-- Footer -->
+                <div style="text-align: center; font-size: 10px; margin-top: 8px; color: #555; line-height: 1.3;">
+                    <p style="margin: 0;">*** ขอบคุณที่ใช้บริการค่ะ/ครับ ***</p>
+                    <p style="margin: 1px 0 0;">อร่อยจัดจ้าน ในย้านนี้โอกาสหน้าเรียนเชิญใหม่นะคะ👍</p>
+                </div>
+
+                <!-- Payment PromptPay QR Code Section (Banking App) -->
+                <div id="receiptPaymentQRCodeSection" style="text-align: center; margin-top: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: monospace;">
+                    <div style="border-top: 1px dashed #333; width: 100%; margin: 6px 0;"></div>
+                    <p style="font-size: 11px; font-weight: bold; margin-bottom: 2px; color: #111;">🏦 สแกนชำระเงินผ่าน PromptPay</p>
+                    <p style="font-size: 8.5px; color: #555; margin-bottom: 4px;">(เปิดแอปธนาคารเพื่อสแกนจ่ายเงิน)</p>
+                    <div style="background: white; padding: 4px; border: 1px solid #333; display: inline-block;">
+                        <img id="receiptPaymentQRCodeImg" src="" alt="Payment QR Code" style="width: 110px; height: 110px; display: block;" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=RajaKrapaoPayment'">
+                    </div>
+                    <p style="font-size: 10px; margin-top: 4px; color: #333;"><strong>ยอดชำระ:</strong> <span id="receiptQRTotal">0</span> ฿</p>
+                    <p style="font-size: 8.5px; margin-top: 1px; color: #666;" id="receiptPromptPayPhoneText">บัญชี: ราชากะเพรา (<span id="receiptPromptPayDisplayNumber">063-516-4606</span>)</p>
+                </div>
+            </div>
+            
+            <!-- Modal Actions (Hidden in Print) -->
+            <div class="print-modal-actions" style="padding: 16px; background: #f8f9fa; border-top: 1px solid #e9ecef; display: flex; gap: 10px; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;">
+                <button class="btn btn-secondary" onclick="closeModal('receiptPreviewModal')" style="flex: 1; justify-content: center; background: #e2e8f0; color: #4a5568; border: none; cursor: pointer;">ปิด</button>
+                <button class="btn btn-primary-gradient" onclick="triggerReceiptPrint()" style="flex: 1; justify-content: center; background: linear-gradient(135deg, #ff5e36, #ff7e40); border: none; color: white; cursor: pointer;">
+                    <i class="fa-solid fa-print"></i> พิมพ์ใบเสร็จ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 7.8: TABLE QR CODE MANAGER & TENT CARDS DIALOG -->
+    <div class="modal-overlay" id="tableQRModal">
+        <div class="modal-container" style="max-width: 860px; width: 95%;">
+            <button class="modal-close-btn" onclick="closeModal('tableQRModal')">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div style="padding: 24px;">
+                <h3 style="margin-bottom: 16px; display: flex; align-items: center; gap: 10px; color: var(--text-main);">
+                    <i class="fa-solid fa-qrcode" style="color: var(--primary);"></i> ป้ายตั้งโต๊ะ QR Code สำหรับสแกนสั่งอาหาร
+                </h3>
+
+                <!-- Status Banner for New Bill or Actions -->
+                <div id="tableQRNoticeBanner" style="display: none; padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 16px; font-size: 14px; font-weight: 600; align-items: center; gap: 10px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #059669;">
+                    <i class="fa-solid fa-circle-check" style="font-size: 20px; color: #10b981; flex-shrink: 0;"></i>
+                    <span id="tableQRNoticeBannerText">เปิดบิลใหม่เรียบร้อยแล้ว</span>
+                </div>
+                
+                <!-- Filter and Config Controls (Hidden in Print) -->
+                <div class="table-qr-controls" style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <label for="tableQRFilterSelect" style="font-size: 13px; font-weight: 600; color: var(--text-main);">
+                                    <i class="fa-solid fa-chair" style="color: var(--primary);"></i> เลือกโต๊ะ:
+                                </label>
+                                <select id="tableQRFilterSelect" onchange="onTableQRFilterChanged()" style="padding: 8px 12px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm); font-size: 13px; cursor: pointer;">
+                                    <option value="all">พิมพ์ทั้งหมด (โต๊ะ 1 - 10)</option>
+                                    <option value="1">โต๊ะที่ 1</option>
+                                    <option value="2">โต๊ะที่ 2</option>
+                                    <option value="3">โต๊ะที่ 3</option>
+                                    <option value="4">โต๊ะที่ 4</option>
+                                    <option value="5">โต๊ะที่ 5</option>
+                                    <option value="6">โต๊ะที่ 6</option>
+                                    <option value="7">โต๊ะที่ 7</option>
+                                    <option value="8">โต๊ะที่ 8</option>
+                                    <option value="9">โต๊ะที่ 9</option>
+                                    <option value="10">โต๊ะที่ 10</option>
+                                </select>
+                            </div>
+
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <label for="tableQRStaffSelect" style="font-size: 13px; font-weight: 600; color: var(--text-main);">
+                                    <i class="fa-solid fa-user-tag" style="color: var(--primary);"></i> ผู้รับออเดอร์:
+                                </label>
+                                <select id="tableQRStaffSelect" onchange="onTableQRStaffChanged(this.value)" style="padding: 8px 12px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; min-width: 160px;" title="เลือกพนักงานผู้รับออเดอร์ก่อนพิมพ์ให้ลูกค้า">
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <button type="button" class="btn btn-primary-gradient" onclick="triggerTableQRPrint()" style="padding: 8px 18px; font-size: 13px; font-weight: bold; cursor: pointer;">
+                                <i class="fa-solid fa-print"></i> พิมพ์ป้ายตั้งโต๊ะ
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 8px; border-top: 1px dashed var(--border); padding-top: 12px; margin-top: 5px;">
+                        <!-- Detected Online Tunnel Banner -->
+                        <div id="tableQROnlineDetectedBadge" style="display: none; align-items: center; justify-content: space-between; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 12px; color: #10b981;">
+                            <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <i class="fa-solid fa-earth-americas" style="font-size: 15px;"></i>
+                                <span><strong>พบระบบออนไลน์ (4G/5G):</strong> <span id="tableQROnlineDetectedUrl" style="font-family: monospace; font-weight: 600;"></span></span>
+                            </div>
+                            <button type="button" class="btn btn-primary" onclick="applyOnlineDetectedUrl()" style="padding: 4px 10px; font-size: 11px; white-space: nowrap; margin-left: 10px; cursor: pointer;">
+                                <i class="fa-solid fa-check"></i> ใช้ลิงก์ออนไลน์นี้
+                            </button>
+                        </div>
+
+                        <!-- URL Input & Action Buttons -->
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px;">
+                            <span style="color: var(--text-muted); font-weight: 600;"><i class="fa-solid fa-link"></i> ลิงก์ระบบสั่งอาหาร:</span>
+                            <input type="text" id="tableQRBaseUrlInput" style="flex: 1; min-width: 240px; padding: 6px 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm); font-family: monospace; font-size: 12px;" value="http://172.86.11.115/QR/">
+                            <button type="button" class="btn btn-secondary" onclick="updateTableQRBaseUrl()" style="padding: 6px 12px; font-size: 12px; cursor: pointer;">
+                                <i class="fa-solid fa-arrows-rotate"></i> บันทึกและรีเฟรช QR
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="resetToLocalWifiUrl()" title="สลับไปใช้ IP ในวง Wi-Fi ร้าน" style="padding: 6px 10px; font-size: 11px; cursor: pointer;">
+                                <i class="fa-solid fa-wifi"></i> ใช้ IP Wi-Fi ร้าน
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Printable Area for Table QR Tent Cards -->
+                <div id="tableQRPrintableArea" style="max-height: 480px; overflow-y: auto; padding: 10px 4px; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; justify-content: center;">
+                    <!-- Table QR Cards rendered dynamically -->
+                </div>
+
+                <div class="print-modal-actions" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button class="btn btn-secondary" onclick="closeModal('tableQRModal')">ปิดหน้าต่าง</button>
+                    <button class="btn btn-primary-gradient" onclick="triggerTableQRPrint()">
+                        <i class="fa-solid fa-print"></i> พิมพ์ป้ายตั้งโต๊ะ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MODAL 8: ADD / EDIT STAFF DIALOG -->
+    <div class="modal-overlay" id="staffFormModal">
+        <div class="modal-container" style="max-width: 460px;">
+            <button class="modal-close-btn" onclick="closeModal('staffFormModal')">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div style="padding: 24px;">
+                <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px; color: var(--text-main);" id="staffModalTitle">
+                    <i class="fa-solid fa-user-plus" style="color: var(--primary);"></i> เพิ่มพนักงานใหม่
+                </h3>
+                
+                <form id="staffForm" onsubmit="saveStaffData(event)">
+                    <input type="hidden" id="staffFormId">
+                    
+                    <div class="form-group">
+                        <label for="staffFormName">ชื่อ-นามสกุลพนักงาน *</label>
+                        <input type="text" id="staffFormName" required placeholder="เช่น นายสมชาย ขยันดี" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 14px;">
+                        <label for="staffFormUsername">ชื่อผู้ใช้งาน (Username) *</label>
+                        <input type="text" id="staffFormUsername" required placeholder="เช่น somchay.k" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                    </div>
+                    
+                    <div class="form-row" style="display: flex; gap: 14px; margin-top: 14px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="staffFormPosition">ตำแหน่งงาน *</label>
+                            <select id="staffFormPosition" required style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                                <option value="chef">พ่อครัว / แม่ครัว</option>
+                                <option value="waiter">พนักงานเสิร์ฟ</option>
+                                <option value="cashier">พนักงานแคชเชียร์</option>
+                                <option value="manager">ผู้จัดการร้าน</option>
+                                <option value="auditor">พนักงานตรวจสอบ</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group" style="flex: 1;">
+                            <label for="staffFormPhone">เบอร์โทรศัพท์ *</label>
+                            <input type="text" id="staffFormPhone" required placeholder="เช่น 0891234567" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 14px;">
+                        <label for="staffFormStatus">สถานะการทำงาน</label>
+                        <select id="staffFormStatus" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                            <option value="active">ปกติ (กำลังปฏิบัติงาน)</option>
+                            <option value="inactive">พักงาน / ลางาน</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-actions" style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('staffFormModal')">ยกเลิก</button>
+                        <button type="submit" class="btn btn-primary-gradient">บันทึกข้อมูล</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 9: ADD / EDIT INVENTORY DIALOG -->
+    <div class="modal-overlay" id="inventoryFormModal">
+        <div class="modal-container" style="max-width: 440px;">
+            <button class="modal-close-btn" onclick="closeModal('inventoryFormModal')">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div style="padding: 24px;">
+                <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px; color: var(--text-main);" id="inventoryModalTitle">
+                    <i class="fa-solid fa-box" style="color: var(--primary);"></i> เพิ่มวัตถุดิบใหม่
+                </h3>
+                
+                <form id="inventoryForm" onsubmit="saveInventoryData(event)">
+                    <input type="hidden" id="inventoryFormId">
+                    
+                    <div class="form-group">
+                        <label for="inventoryFormName">ชื่อวัตถุดิบ *</label>
+                        <input type="text" id="inventoryFormName" required placeholder="เช่น หมูสับ, ไข่ไก่, พริกแห้ง" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                    </div>
+                    
+                    <div class="form-row" style="display: flex; gap: 14px; margin-top: 14px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="inventoryFormQty">จำนวนปัจจุบัน *</label>
+                            <input type="number" id="inventoryFormQty" required min="0" placeholder="เช่น 50" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                        </div>
+                        
+                        <div class="form-group" style="flex: 1;">
+                            <label for="inventoryFormUnit">หน่วยนับ *</label>
+                            <input type="text" id="inventoryFormUnit" required placeholder="เช่น กก., ฟอง, ขวด" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 14px;">
+                        <label for="inventoryFormMinStock">เกณฑ์เตือนสต็อกขั้นต่ำ (Warning Threshold) *</label>
+                        <input type="number" id="inventoryFormMinStock" required min="0" placeholder="แจ้งเตือนเมื่อต่ำกว่าค่านี้ (เช่น 5)" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                    </div>
+                    
+                    <div class="form-actions" style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('inventoryFormModal')">ยกเลิก</button>
+                        <button type="submit" class="btn btn-primary-gradient">บันทึกคลัง</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: RECORD STOCK-IN RECEIVING DIALOG -->
+    <div class="modal-overlay" id="stockInFormModal">
+        <div class="modal-container" style="max-width: 480px;">
+            <button class="modal-close-btn" onclick="closeModal('stockInFormModal')">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div style="padding: 24px;">
+                <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+                    <i class="fa-solid fa-dolly" style="color: #10b981;"></i> บันทึกรับเข้าวัตถุดิบ (สต็อก)
+                </h3>
+                
+                <form id="stockInForm" onsubmit="saveStockInData(event)">
+                    
+                    <div class="form-group" style="position: relative;">
+                        <label for="stockInItemInput">เลือกหรือพิมพ์ชื่อวัตถุดิบที่รับเข้า *</label>
+                        <div style="position: relative;">
+                            <input type="text" id="stockInItemInput" required autocomplete="off"
+                                placeholder="🔍 พิมพ์ค้นหา หรือพิมพ์ชื่อวัตถุดิบ..."
+                                oninput="handleStockInSearchInput(this.value)"
+                                onfocus="showStockInDropdown()"
+                                onclick="showStockInDropdown()"
+                                style="width: 100%; padding: 10px 36px 10px 12px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm); font-size: 14px;">
+                            <i class="fa-solid fa-chevron-down" id="stockInDropdownIcon" onclick="toggleStockInDropdown()"
+                                style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--text-muted); cursor: pointer; padding: 4px;"></i>
+                            <input type="hidden" id="stockInFormItemId" value="">
+                        </div>
+                        
+                        <!-- Floating Dropdown Suggestions -->
+                        <div class="stock-in-dropdown-list" id="stockInDropdownList" style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 1050; background: var(--bg-card, #1e293b); border: 1px solid var(--border, #334155); border-radius: var(--radius-sm, 8px); max-height: 220px; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                        
+                        <span id="stockInCurrentQtyText" style="display: block; font-size: 11px; color: var(--text-muted); margin-top: 4px;">จำนวนคงเหลือปัจจุบัน: -</span>
+                    </div>
+                    
+                    <div class="form-row" style="display: flex; gap: 12px; margin-top: 14px;">
+                        <div class="form-group" style="flex: 2;">
+                            <label for="stockInFormQty">จำนวนที่รับเข้า *</label>
+                            <input type="number" id="stockInFormQty" required min="0.01" step="any" placeholder="ระบุจำนวน" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label for="stockInFormUnit">หน่วยนับ</label>
+                            <input type="text" id="stockInFormUnit" value="กก." placeholder="เช่น กก." style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                        </div>
+                        <div class="form-group" style="flex: 2;">
+                            <label for="stockInFormCost">ต้นทุนรวม (บาท)</label>
+                            <input type="number" id="stockInFormCost" min="0" step="any" placeholder="เช่น 350" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 14px;">
+                        <label for="stockInFormStaff">ผู้รับเข้า / พนักงาน *</label>
+                        <select id="stockInFormStaff" required style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                            <option value="">-- เลือกผู้รับเข้า --</option>
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 14px;">
+                        <label for="stockInFormRemarks">หมายเหตุเพิ่มเติม</label>
+                        <textarea id="stockInFormRemarks" rows="2" placeholder="เช่น สดใหม่ วันหมดอายุ 30/10/2026" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm); font-family: inherit; resize: none;"></textarea>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 14px; background: rgba(16, 185, 129, 0.08); padding: 12px; border-radius: var(--radius-sm); border-left: 3px solid #10b981;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; font-size: 13px; color: var(--text-main); font-weight: 500;">
+                            <input type="checkbox" id="stockInRecordExpense" checked style="width: 16px; height: 16px; accent-color: #10b981; cursor: pointer;">
+                            <span>บันทึกเป็นรายจ่ายของร้านโดยอัตโนมัติ (หมวดวัตถุดิบอาหาร)</span>
+                        </label>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px; padding-left: 24px;">หากระบุยอดต้นทุนรวม ระบบจะนำไปบันทึกลงในหน้ารายจ่ายของร้านให้อัตโนมัติ</div>
+                    </div>
+                    
+                    <div class="form-actions" style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('stockInFormModal')">ยกเลิก</button>
+                        <button type="submit" class="btn btn-primary-gradient" style="background: linear-gradient(135deg, #10b981, #059669);"><i class="fa-solid fa-check"></i> บันทึกรับเข้าสต็อก</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 10: RECORD REQUISITION DIALOG -->
+    <div class="modal-overlay" id="requisitionFormModal">
+        <div class="modal-container" style="max-width: 440px;">
+            <button class="modal-close-btn" onclick="closeModal('requisitionFormModal')">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div style="padding: 24px;">
+                <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+                    <i class="fa-solid fa-file-signature" style="color: var(--primary);"></i> ทำรายการเบิกจ่ายวัตถุดิบ
+                </h3>
+                
+                <form id="requisitionForm" onsubmit="saveRequisitionData(event)">
+                    
+                    <div class="form-group">
+                        <label for="requisitionFormItem">เลือกวัตถุดิบในคลัง *</label>
+                        <select id="requisitionFormItem" required onchange="updateRequisitionStockLimit()" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                            <option value="">-- กรุณาเลือกวัตถุดิบ --</option>
+                            <!-- Populated dynamically -->
+                        </select>
+                        <span id="requisitionStockLimitText" style="display: block; font-size: 11px; color: var(--text-muted); margin-top: 4px;">จำนวนคงเหลือในคลัง: -</span>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 14px;">
+                        <label for="requisitionFormQty">จำนวนที่ต้องการเบิกจ่าย *</label>
+                        <input type="number" id="requisitionFormQty" required min="1" placeholder="ระบุจำนวนที่ต้องการเบิก" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 14px;">
+                        <label for="requisitionFormStaff">พนักงานผู้ขอเบิกจ่าย *</label>
+                        <select id="requisitionFormStaff" required style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                            <option value="">-- กรุณาเลือกพนักงาน --</option>
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 14px;">
+                        <label for="requisitionFormRemarks">หมายเหตุ / วัตถุประสงค์การเบิกจ่าย</label>
+                        <textarea id="requisitionFormRemarks" rows="2" placeholder="เช่น นำไปผัดกระเพรารอบเย็น, ทำความสะอาดครัว" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm); font-family: inherit; resize: none;"></textarea>
+                    </div>
+                    
+                    <div class="form-actions" style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('requisitionFormModal')">ยกเลิก</button>
+                        <button type="submit" class="btn btn-primary-gradient">อนุมัติการเบิกจ่าย</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- MODAL 13: EXPENSE FORM DIALOG -->
+    <div class="modal-overlay" id="expenseFormModal">
+        <div class="modal-container" style="max-width: 440px;">
+            <button class="modal-close-btn" onclick="closeModal('expenseFormModal')">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div style="padding: 24px;">
+                <h3 id="expenseModalTitle" style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+                    <i class="fa-solid fa-cash-register" style="color: var(--primary);"></i> บันทึกรายจ่ายของร้าน
+                </h3>
+                <form id="expenseForm" onsubmit="saveExpenseData(event)">
+                    <input type="hidden" id="expenseFormId">
+                    <div class="form-group">
+                        <label for="expenseFormCategory">หมวดหมู่รายจ่าย *</label>
+                        <select id="expenseFormCategory" required style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                            <option value="วัตถุดิบอาหาร">วัตถุดิบอาหาร (Ingredients)</option>
+                            <option value="สาธารณูปโภค">สาธารณูปโภค (Water/Electricity)</option>
+                            <option value="เงินเดือน/ค่าจ้าง">เงินเดือน/ค่าจ้าง (Salaries)</option>
+                            <option value="ค่าเช่าสถานที่">ค่าเช่าสถานที่ (Rent)</option>
+                            <option value="อื่นๆ">อื่นๆ (Others)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-top: 14px;">
+                        <label for="expenseFormDesc">รายละเอียดรายจ่าย *</label>
+                        <input type="text" id="expenseFormDesc" required placeholder="เช่น ซื้อไข่ไก่ 5 แผง, จ่ายค่าไฟรอบเดือนสิงหาคม" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                    </div>
+                    <div class="form-group" style="margin-top: 14px;">
+                        <label for="expenseFormAmount">จำนวนเงิน (฿) *</label>
+                        <input type="number" id="expenseFormAmount" required min="1" placeholder="จำนวนเงิน" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                    </div>
+                    <div class="form-group" style="margin-top: 14px;">
+                        <label for="expenseFormStaff">ผู้บันทึกรายการ *</label>
+                        <select id="expenseFormStaff" required style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                            <option value="">-- กรุณาเลือกผู้บันทึก --</option>
+                            <!-- Populated dynamically with staff list -->
+                        </select>
+                    </div>
+                    <div class="form-actions" style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('expenseFormModal')">ยกเลิก</button>
+                        <button type="submit" class="btn btn-primary-gradient">บันทึกรายจ่าย</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 12: EDIT STORE OWNER DIALOG -->
+    <div class="modal-overlay" id="ownerFormModal">
+        <div class="modal-container" style="max-width: 480px;">
+            <button class="modal-close-btn" onclick="closeModal('ownerFormModal')">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div style="padding: 24px;">
+                <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px; color: var(--text-main);" id="ownerModalTitle">
+                    <i class="fa-solid fa-crown" style="color: #f59e0b;"></i> ข้อมูลเจ้าของร้าน
+                </h3>
+                
+                <form id="ownerForm" onsubmit="saveOwnerData(event)">
+                    <div class="form-group">
+                        <label for="ownerFormName">ชื่อ-นามสกุลเจ้าของร้าน *</label>
+                        <input type="text" id="ownerFormName" required placeholder="เช่น คุณราชา เจ้าของร้าน" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 14px;">
+                        <label for="ownerFormUsername">ชื่อผู้ใช้งาน (Username) *</label>
+                        <input type="text" id="ownerFormUsername" required placeholder="เช่น owner" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                    </div>
+                    
+                    <div class="form-row" style="display: flex; gap: 14px; margin-top: 14px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="ownerFormPhone">เบอร์โทรศัพท์ติดต่อ *</label>
+                            <input type="text" id="ownerFormPhone" required placeholder="เช่น 089-999-9999" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm);">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label for="ownerFormPasscode">รหัสผ่านหลังบ้าน (Passcode) *</label>
+                            <input type="text" id="ownerFormPasscode" required placeholder="เช่น 1234" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm); font-weight: 600; letter-spacing: 2px;">
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 16px; padding: 12px 14px; background: rgba(245, 158, 11, 0.08); border-radius: var(--radius-sm); border-left: 3px solid #f59e0b; font-size: 13px; color: var(--text-muted); line-height: 1.5;">
+                        <i class="fa-solid fa-circle-info" style="color: #f59e0b;"></i> บทบาท: <strong>เจ้าของร้าน (ผู้บริหารสูงสุด)</strong> มีสิทธิ์เข้าถึงและควบคุมทุกส่วนในระบบ รหัสผ่านนี้จะใช้ปลดล็อกเพื่อเข้าสู่ระบบหลังบ้าน
+                    </div>
+                    
+                    <div class="form-actions" style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('ownerFormModal')">ยกเลิก</button>
+                        <button type="submit" class="btn btn-primary-gradient" style="background: linear-gradient(135deg, #f59e0b, #d97706);"><i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลเจ้าของร้าน</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- DEDICATED DIRECT-BODY CONTAINER FOR SALES REPORT PRINTING (A4) -->
+    <div id="salesReportPrintContainer" style="display: none;"></div>
+
+    <!-- Application Controller Logic -->
+    <script src="app.js?v=48"></script>
+</body>
+</html>
